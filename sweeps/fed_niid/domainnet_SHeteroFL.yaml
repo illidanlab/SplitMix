@@ -1,0 +1,35 @@
+name: SHeteroFL_DomainNet
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+- "--data=DomainNet"
+#- "--model=alex"
+# follow heteroFL
+#- "--iters=400"
+- "--iters=1000"
+- "--wk_iters=1"
+- "--lr=0.01"
+# MultiStepLR, WD: 5e-4, momentum=0.9
+- "--opt=sgd"
+- "--batch=32"
+- "--lr_sch=none"
+- "--pd_nuser=5"
+- "--percent=1."
+- "--val_ratio=0.3"
+- "--no_track_stat"
+- "--val_ens_only"  # comment to record all val_acc
+#- "--resume"  # use this to fine-tune
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: best_val_acc
+parameters:
+  seed:
+    values:
+    - 1
+#    - 2
+#    - 3
+program: fed_hfl

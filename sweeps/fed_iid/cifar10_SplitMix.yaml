@@ -1,0 +1,37 @@
+name: splitmix_Cifar10
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+- "--data=Cifar10"
+- "--iters=400"
+- "--wk_iters=5"
+- "--lr=0.01"  # for atom=0.125
+# MultiStepLR, WD: 5e-4, momentum=0.9
+- "--opt=sgd"
+- "--batch=128"
+#- "--lr_sch=multi_step"
+#- "--lr_sch=multi_step50"
+- "--lr_sch=multi_step100"
+- "--pd_nuser=100"
+- "--val_ratio=0.1"
+- "--no_track_stat"
+- "--val_ens_only"
+#- "--resume"  # use this to fine-tune
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: best_val_acc
+parameters:
+  seed:
+    values:
+    - 1
+#    - 2
+#    - 3
+  percent:
+    values:
+      - 1.
+      - 0.5
+program: fed_splitmix

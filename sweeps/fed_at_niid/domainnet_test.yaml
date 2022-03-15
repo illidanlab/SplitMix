@@ -1,0 +1,54 @@
+name: fedavg_DomainNet_AT_test
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+- "--data=DomainNet"
+#- "--model=ens_alex"
+# follow heteroFL
+- "--wk_iters=1"
+- "--opt=sgd"
+- "--batch=32"
+# use fedbn config
+- "--iters=800"
+- "--lr_sch=none"
+- "--lr=0.01"
+# use cifar10 config
+#- "--iters=400"
+#- "--lr_sch=multi_step" # MultiStepLR, WD: 5e-4, momentum=0.9
+#- "--lr=0.01"
+# ----
+- "--pd_nuser=5"
+- "--percent=1."
+- "--val_ratio=0.3"
+#- "--no_track_stat"
+- "--test"
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: best_val_acc
+parameters:
+  seed:
+    values:
+    - 1
+#    - 2
+#    - 3
+  width_scale:
+    values:
+      - 1.0
+#      - 0.5
+#      - 0.25
+      - 0.125
+  adv_lmbd:
+    values:
+      - 0.
+      - 0.3
+      - 0.5
+      - 1.0
+  test_noise:
+    values:
+      - none
+      - LinfPGD
+program: fedavg

@@ -1,0 +1,65 @@
+name: splitmix_DomainNet_AT_test
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+- "--data=DomainNet"
+#- "--model=ens_alex"
+# follow heteroFL
+- "--wk_iters=1"
+- "--opt=sgd"
+- "--batch=32"
+# use fedbn config
+- "--iters=800"
+- "--lr_sch=none"
+- "--lr=0.01"
+# use cifar10 config
+#- "--iters=400"
+#- "--lr_sch=multi_step" # MultiStepLR, WD: 5e-4, momentum=0.9
+#- "--lr=0.01"
+# ----
+- "--pd_nuser=5"
+- "--percent=1."
+- "--val_ratio=0.3"
+- "--val_ens_only"
+#- "--no_track_stat"
+- "--rescale_init=False"  # NOTE necessary for track bn
+- "--rescale_layer=False"  # NOTE necessary for track bn
+- "--test"
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: best_val_acc
+parameters:
+  seed:
+    values:
+    - 1
+#    - 2
+#    - 3
+  adv_lmbd:
+    values:
+      - 0.5
+  lbn:
+    values:
+      - True
+#      - False
+  test_noise:
+    values:
+      - none
+      - LinfPGD
+  test_slim_ratio: # define the width width
+    values:
+      - 0.125
+      - 0.25
+      - 0.5
+      - 1.
+  test_adv_lmbd:
+    values:
+      - 0.
+      - 0.2
+      - 0.5
+      - 0.8
+      - 1.0
+program: fed_splitmix

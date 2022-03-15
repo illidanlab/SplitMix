@@ -1,0 +1,39 @@
+name: SHeteroFL_Digits_test
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+- "--data=Digits"
+#- "--model=digit"
+# follow heteroFL
+- "--iters=300"
+- "--wk_iters=1"
+- "--lr=0.1"
+# MultiStepLR, WD: 5e-4, momentum=0.9
+- "--opt=sgd"
+- "--batch=32"
+- "--lr_sch=cos"
+- "--pd_nuser=10"
+- "--percent=0.3"
+- "--val_ratio=0.5"
+- "--no_track_stat"
+- "--test"  # use this to fine-tune
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: avg test acc
+parameters:
+  seed:
+    values:
+      - 1
+  #    - 2
+  #    - 3
+  test_slim_ratio: # define the width width
+    values:
+      - 0.125
+      - 0.25
+      - 0.5
+      - 1.
+program: fed_hfl

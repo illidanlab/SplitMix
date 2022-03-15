@@ -1,0 +1,48 @@
+name: vary_budget_dist SHeteroFL_Digits
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+- "--data=Digits"
+- "--model=digit"
+# follow heteroFL
+- "--iters=300"
+- "--wk_iters=1"
+- "--lr=0.1"
+# MultiStepLR, WD: 5e-4, momentum=0.9
+- "--opt=sgd"
+- "--batch=32"
+- "--lr_sch=cos"
+- "--pd_nuser=10"
+- "--percent=0.3"
+- "--val_ratio=0.5"
+- "--no_track_stat"
+#- "--slimmable_train=False"  # NOTE recommended for ln0.5_0.4 to be efficient => HeteroFL
+- "--val_ens_only"
+#- "--resume"  # use this to fine-tune
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: best_val_acc
+parameters:
+  seed:
+    values:
+      - 1
+  #    - 2
+  #    - 3
+  slim_ratios:
+    values:
+      - 'ln0.5_0.4'  # lognorm
+# ----- Skewed groups -----
+##      - '8-4-2-1'  # default
+      - '8-1-1-1'  # more b-sufficient clients
+      - '8-2-1-1'  # more b-sufficient clients
+      - '8-2-2-1'  # more b-sufficient clients
+      - '8-4-4-1'  # more b-insufficient clients
+# ---- Non-exp distribution: step=0.125 ----
+      - '8-4-8d3-2'
+# ---- Non-exp distribution: step=0.25 ----
+      - '4-2-4d3-1'
+program: fed_hfl

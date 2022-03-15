@@ -1,0 +1,44 @@
+name: splitmix_Cifar10_AT
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+# Example: python -m fed_slimmable --data=Cifar10 --model=resnet34 --opt=adam --batch=128 --iters=150 --wk_iters=20 --lr=0.01 --lr_sch=cos --pd_nuser=30 --skip_test --percent=1. --no_track_stat --SliT_ratio=0 --mode=FedAvg --n_noise_domain=-1 --noise_ratio=0 --slim_sch=none --slim_ratio=0.25 --val_ratio=0.1
+- "--data=Cifar10"
+#- "--model=ens_preresnet18"
+# follow heteroFL
+- "--iters=400"
+- "--wk_iters=5"
+- "--lr=0.1"
+# MultiStepLR, WD: 5e-4, momentum=0.9
+- "--opt=sgd"
+- "--batch=128"
+- "--lr_sch=multi_step50"
+- "--pd_nuser=100"
+- "--percent=1.0"
+- "--val_ratio=0.1"
+- "--val_ens_only"
+#- "--no_track_stat"
+- "--rescale_init=False"  # NOTE necessary for track bn
+- "--rescale_layer=False"  # NOTE necessary for track bn
+- "--resume"  # use this to fine-tune
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: best_val_acc
+parameters:
+  seed:
+    values:
+    - 1
+#    - 2
+#    - 3
+  adv_lmbd:
+    values:
+      - 0.5
+  lbn:
+    values:
+      - True
+#      - False
+program: fed_splitmix

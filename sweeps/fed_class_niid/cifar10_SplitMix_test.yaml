@@ -1,0 +1,43 @@
+name: splitmix_Cifar10_cniid_test
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+# Example:
+- "--data=Cifar10"
+# follow heteroFL
+- "--iters=400"
+- "--wk_iters=5"
+- "--lr=0.01"  # for atom=0.125
+# MultiStepLR, WD: 5e-4, momentum=0.9
+- "--opt=sgd"
+- "--batch=128"
+- "--lr_sch=multi_step"
+- "--pd_nuser=100"
+- "--percent=1.0"
+- "--val_ratio=0.1"
+- "--no_track_stat"
+- "--val_ens_only"
+- "--test"  # use this to fine-tune
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: avg test acc
+parameters:
+  seed:
+    values:
+    - 1
+#    - 2
+#    - 3
+  test_slim_ratio: # define the width width
+    values:
+      - 0.125
+      - 0.25
+      - 0.5
+      - 1.
+  pu_nclass:
+    values:
+      - 3
+program: fed_splitmix

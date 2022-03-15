@@ -1,0 +1,42 @@
+name: vary_pr_nuser splitmix_Digits
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+- "--data=Digits"
+#- "--model=ens_digit"
+# follow heteroFL
+- "--wk_iters=1"
+#- "--iters=300"
+- "--iters=600"  # for smaller pr_nuser
+- "--lr=0.01"
+# MultiStepLR, WD: 5e-4, momentum=0.9
+- "--opt=sgd"
+- "--batch=32"
+- "--lr_sch=cos"
+- "--pd_nuser=10"
+- "--percent=0.3"
+- "--val_ratio=0.5"
+- "--no_track_stat"
+#- "--resume"  # use this to fine-tune
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: best_val_acc
+parameters:
+  seed:
+    values:
+    - 1
+    - 2
+    - 3
+  pr_nuser:
+    values:
+      - -1  # default
+      - 2
+      - 5
+      - 10
+      - 20
+      - 30
+program: fed_splitmix

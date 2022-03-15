@@ -1,0 +1,35 @@
+name: splitmix_Digits
+project: SplitMix_release
+command:
+- ${interpreter}
+- -m
+- ${program}
+# Example:
+- "--data=Digits"
+#- "--model=digit"
+# follow heteroFL
+- "--iters=300"
+- "--wk_iters=1"
+- "--lr=0.01"
+# MultiStepLR, WD: 5e-4, momentum=0.9
+- "--opt=sgd"
+- "--batch=32"
+- "--lr_sch=cos"
+- "--pd_nuser=10"
+- "--percent=0.3"
+- "--val_ratio=0.5"
+- "--no_track_stat"
+#- "--val_ens_only"
+#- "--resume"  # use this to fine-tune
+- ${args}
+method: grid
+metric:
+  goal: maximize
+  name: best_val_acc
+parameters:
+  seed:
+    values:
+    - 1
+#    - 2
+#    - 3
+program: fed_splitmix

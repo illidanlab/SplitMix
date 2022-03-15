@@ -1,0 +1,22 @@
+name: splitmix
+channels:
+  - defaults
+  - pytorch
+  - conda-forge
+dependencies:
+  - pip=21.0.1=py37h06a4308_0
+  - python=3.7.11=h12debd9_0
+  - numpy=1.20.3=py37hf144106_0
+  - pytorch=1.7.1=py3.7_cuda11.0.221_cudnn8.0.5_0
+  - cudatoolkit=11.0.221=h6bb024c_0
+  - wandb=0.12.1=pyhd8ed1ab_0
+  - jupyter=1.0.0=py37_7
+  - torchvision=0.8.2=py37_cu110
+  - tqdm=4.62.1=pyhd3eb1b0_1
+  - seaborn=0.11.2=pyhd3eb1b0_0
+  - scipy=1.7.1=py37h292c36d_2
+  - matplotlib=3.4.2=py37h06a4308_0
+  - pip:
+    - advertorch==0.2.3
+    - thop==0.0.31-2005241907
+
