@@ -38,6 +38,10 @@ class _Federation:
                             help='the mode when splitting domain data into users: uni - uniform '
                                  'distribution (all user have the same #samples); dir - Dirichlet'
                                  ' distribution (non-iid sample sizes)')
+        parser.add_argument('--con_test_cls', action='store_true',
+                            help='Ensure the test classes are the same training for a client. '
+                                 'Meanwhile, make test sets are uniformly splitted for clients. '
+                                 'Mainly influence class-niid settings.')
 
     @classmethod
     def render_run_name(cls, args):
@@ -47,6 +51,7 @@ class _Federation:
         if args.pr_nuser != -1: run_name += f'__pr_nuser_{args.pr_nuser}'
         if args.domain_order != 0: run_name += f'__do_{args.domain_order}'
         if args.partition_mode != 'uni': run_name += f'__part_md_{args.partition_mode}'
+        if args.con_test_cls: run_name += '__ctc'
         return run_name
 
     def __init__(self, data, args):
@@ -81,6 +86,7 @@ class _Federation:
             partition_mode=args.partition_mode,
             val_ratio=args.val_ratio,
             eq_domain_train_size=args.partition_mode == 'uni',
+            consistent_test_class=args.con_test_cls,
         )
         clients = [c + ' ' + ('noised' if hasattr(args, 'adv_lmbd') and args.adv_lmbd > 0.
                               else 'clean') for c in clients]

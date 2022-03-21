@@ -4,6 +4,10 @@ Joint Customization of Model Sizes & Robustness
 For each experiment, we use one sweep file, e.g., `fed_iid/cifar10.yaml`, for training and one,
 e.g., `fed_iid/cifar10_test.yaml`, for testing.
 
+NOTE
+* Different from width customization, we do not use `--no_track_stat` to disable tracking 
+statistics in BN, following the common practice of adversarial training.
+
 ## Full-width Net w\ Customizable Robustness
 
 Results in Fig 9 (a,b).

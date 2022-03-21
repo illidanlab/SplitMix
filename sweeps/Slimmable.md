@@ -14,6 +14,13 @@ Plots:
 * DomainNet per domain acc (Fig. 6): [../ipynb/DomainNet%20per%20domain%20acc.ipynb](../ipynb/DomainNet%20per%20domain%20acc.ipynb)
 * Client-wise statistics of test acc, training and communication efficiency (Fig. 5): [../ipynb/client_stat.ipynb](../ipynb/client_stat.ipynb)
 
+NOTE
+* By default, we use `--no_track_stat` to disable tracking statistics in BN, except in specific 
+    ablation study.
+* For class-niid experiments, the test set and training set may not share the same classes. Since we
+    do not track BN statistics (`--no_track_stat`), the split does not affect final evaluation. To
+    enforce consistent test classes, use `--con_test_cls` during training and testing.
+
 ## FedAvg: Baseline with a single width
 
 * Cifar10 100% or 50% train data
@@ -161,6 +168,15 @@ Results in Sec. A.3.
 
 Plots:
 * Ablation table (Table 4): [../ipynb/Ablation study.ipynb](../ipynb/Ablation%20study.ipynb)
+
+Explanation of BN types in the table:
+* _batch average_: Use `--no_track_stat`.
+* _post average_: Use `--no_track_stat` and use `--test_refresh_bn`. `--test_refresh_bn` is only
+  needed in test yaml file.
+* _tracked_: Remove `--no_track_stat`
+* _locally tracked_: Remove `--no_track_stat` and use `--lbn=true`
+
+You can also change `--rescale_init` and `--rescale_layer` to be `true` or `false`.
 
 * Digits
 ```shell

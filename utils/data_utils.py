@@ -284,7 +284,8 @@ class ClassWisePartitioner(Partitioner):
         self.n_class_per_share = n_class_per_share
         self._aux_partitioner = Partitioner(**kwargs)
 
-    def __call__(self, labels, n_user, log=print):
+    def __call__(self, labels, n_user, log=print, user_ids_by_class=None,
+                 return_user_ids_by_class=False, consistent_class=False):
         """Partition a list of labels into `n_user` shares.
         Returns:
             partition: A list of users, where each user include a list of sample indexes.
@@ -304,12 +305,14 @@ class ClassWisePartitioner(Partitioner):
                                                           f"has {self.n_class_per_share} classes."
 
         # assign classes to each user.
-        user_ids_by_class = defaultdict(list)
-        label_sampler = shuffle_sampler(list(range(n_class)))
-        for s in range(n_user):
-            s_classes = [label_sampler.next() for _ in range(self.n_class_per_share)]
-            for c in s_classes:
-                user_ids_by_class[c].append(s)
+        if user_ids_by_class is None:
+            user_ids_by_class = defaultdict(list)
+            label_sampler = shuffle_sampler(list(range(n_class)),
+                                            self.rng if consistent_class else None)
+            for s in range(n_user):
+                s_classes = [label_sampler.next() for _ in range(self.n_class_per_share)]
+                for c in s_classes:
+                    user_ids_by_class[c].append(s)
 
         # assign sample indexes to clients
         idx_by_user = [[] for _ in range(n_user)]
@@ -326,7 +329,10 @@ class ClassWisePartitioner(Partitioner):
             for i_user, tl in zip(user_ids_by_class[c], l_by_user):
                 idx_by_user[i_user].extend(idx_by_class[c][base_idx:base_idx+tl])
                 base_idx += tl
-        return idx_by_user
+        if return_user_ids_by_class:
+            return idx_by_user, user_ids_by_class
+        else:
+            return idx_by_user
 
 
 def extract_labels(dataset: Dataset):

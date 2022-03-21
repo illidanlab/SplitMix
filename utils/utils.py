@@ -101,9 +101,11 @@ class _Sampler(object):
 
 
 class shuffle_sampler(_Sampler):
-    def __init__(self, arr):
+    def __init__(self, arr, rng=None):
         super().__init__(arr)
-        np.random.shuffle(self.arr)
+        if rng is None:
+            rng = np.random
+        rng.shuffle(self.arr)
         self._idx = 0
         self._max_idx = len(self.arr)
 
