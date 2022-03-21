@@ -195,15 +195,22 @@ def make_dataset_from_dir(
             for fname in sorted(fnames):
                 path = os.path.join(root, fname)
                 if is_valid_file(path):
-                    item = path, class_index
                     paths.append(path)
                     labels.append(class_index)
-                    # instances.append(item)
     return paths, labels
 
 
 class Partitioner(object):
-    """Partition a sequence into shares."""
+    """Class for partition a sequence into multiple shares (or users).
+
+    Args:
+        rng (np.random.RandomState): random state.
+        partition_mode (str): 'dir' for Dirichlet distribution or 'uni' for uniform.
+        max_n_sample_per_share (int): max number of samples per share.
+        min_n_sample_per_share (int): min number of samples per share.
+        max_n_sample (int): max number of samples
+        verbose (bool): verbosity
+    """
     def __init__(self, rng=None, partition_mode="dir",
                  max_n_sample_per_share=-1,
                  min_n_sample_per_share=2,
@@ -260,12 +267,28 @@ class Partitioner(object):
 
 
 class ClassWisePartitioner(Partitioner):
+    """Partition a list of labels by class. Classes will be shuffled and assigned to users
+    sequentially.
+
+    Args:
+        n_class_per_share (int): number of classes per share (user).
+        rng (np.random.RandomState): random state.
+        partition_mode (str): 'dir' for Dirichlet distribution or 'uni' for uniform.
+        max_n_sample_per_share (int): max number of samples per share.
+        min_n_sample_per_share (int): min number of samples per share.
+        max_n_sample (int): max number of samples
+        verbose (bool): verbosity
+    """
     def __init__(self, n_class_per_share=2, **kwargs):
         super(ClassWisePartitioner, self).__init__(**kwargs)
         self.n_class_per_share = n_class_per_share
         self._aux_partitioner = Partitioner(**kwargs)
 
     def __call__(self, labels, n_user, log=print):
+        """Partition a list of labels into `n_user` shares.
+        Returns:
+            partition: A list of users, where each user include a list of sample indexes.
+        """
         # reorganize labels by class
         idx_by_class = defaultdict(list)
         if len(labels) > 1e5:
@@ -288,6 +311,7 @@ class ClassWisePartitioner(Partitioner):
             for c in s_classes:
                 user_ids_by_class[c].append(s)
 
+        # assign sample indexes to clients
         idx_by_user = [[] for _ in range(n_user)]
         if n_class > 100 or len(labels) > 1e5:
             idx_by_class_iter = tqdm(idx_by_class, leave=True, desc='split cls')

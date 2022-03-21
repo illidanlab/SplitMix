@@ -6,7 +6,7 @@ Split-Mix Federated Learning
 Official PyTorch Code for Paper: "Efficient Split-Mix Federated Learning for On-Demand and In-Situ 
 Customization" [Junyuan Hong](https://jyhong.gitlab.io/), [Haotao Wang](https://htwang14.github.io/),
 [Zhangyang Wang](https://vita-group.github.io/) and [Jiayu Zhou](https://jiayuzhou.github.io/),
-*ICLR* 2022. [[paper](https://openreview.net/forum?id=_QLmakITKg)], 
+*ICLR* 2022. [[paper](https://openreview.net/pdf?id=_QLmakITKg)], 
 [[code](https://github.com/illidanlab/SplitMix)], [[slides]()], [[poster]()].
 
 ## Overview

@@ -1,7 +1,10 @@
+"""Configuration file for defining paths to data."""
 import os
+
 def make_if_not_exist(p):
     if not os.path.exists(p):
         os.makedirs(p)
+
 hostname = os.uname()[1]  # type: str
 # Update your paths here.
 CHECKPOINT_ROOT = './checkpoint'

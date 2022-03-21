@@ -118,13 +118,20 @@ def get_central_data(name: str, domains: list, percent=1., image_norm='none',
 def make_fed_data(train_sets, test_sets, batch_size, domains, shuffle_eval=False,
                   n_user_per_domain=1, partition_seed=42, partition_mode='uni',
                   n_class_per_user=-1, val_ratio=0.2,
-                  eq_domain_train_size=True, percent=1., distributed=False,
+                  eq_domain_train_size=True, percent=1.,
                   num_workers=0, pin_memory=False, min_n_sample_per_share=128,
                   subset_with_logits=False,
                   test_batch_size=None, shuffle=True):
+    """Distribute multi-domain datasets (`train_sets`) into federated clients.
+
+    Args:
+        train_sets (list): A list of datasets for training.
+        test_sets (list): A list of datasets for testing.
+        partition_seed (int): Seed for partitioning data into clients.
+    """
     test_batch_size = batch_size if test_batch_size is None else test_batch_size
     SubsetClass = SubsetWithLogits if subset_with_logits else Subset
-    datasets = [f'{i}' for i in range(len(domains))]
+    clients = [f'{i}' for i in range(len(domains))]
 
     print(f" train size: {[len(s) for s in train_sets]}")
     print(f" test  size: {[len(s) for s in test_sets]}")
@@ -139,18 +146,18 @@ def make_fed_data(train_sets, test_sets, batch_size, domains, shuffle_eval=False
 
     print(f" trimmed train size: {[tl for tl in train_len]}")
 
-    if n_user_per_domain > 1:
-        if n_class_per_user > 0:
+    if n_user_per_domain > 1:  # split data into multiple users
+        if n_class_per_user > 0:  # split by class-wise non-iid
             split = ClassWisePartitioner(rng=np.random.RandomState(partition_seed),
                                          n_class_per_share=n_class_per_user,
                                          min_n_sample_per_share=min_n_sample_per_share,
                                          partition_mode=partition_mode,
                                          verbose=True)
-            splitted_datasets = []
+            splitted_clients = []
             val_sets, sub_train_sets = [], []
-            for i_dataset, (dname, tr_set) in enumerate(zip(datasets, train_sets)):
+            for i_client, (dname, tr_set) in enumerate(zip(clients, train_sets)):
                 _tr_labels = extract_labels(tr_set)  # labels in the original order
-                _tr_labels = _tr_labels[:train_len[i_dataset]]  # trim
+                _tr_labels = _tr_labels[:train_len[i_client]]  # trim
                 _idx_by_user = split(_tr_labels, n_user_per_domain)
                 print(f" {dname} | train split size: {[len(idxs) for idxs in _idx_by_user]}")
                 _tr_labels = np.array(_tr_labels)
@@ -166,7 +173,7 @@ def make_fed_data(train_sets, test_sets, batch_size, domains, shuffle_eval=False
                     np.random.shuffle(idxs)
                     val_sets.append(Subset(tr_set, idxs[:vl]))
 
-                    splitted_datasets.append(f"{dname}-{i_user}")
+                    splitted_clients.append(f"{dname}-{i_user}")
 
             sub_test_sets = []
             for te_set in test_sets:
@@ -180,15 +187,15 @@ def make_fed_data(train_sets, test_sets, batch_size, domains, shuffle_eval=False
                 for idxs in _idx_by_user:
                     np.random.shuffle(idxs)
                     sub_test_sets.append(Subset(te_set, idxs))
-        else:
+        else:  # class iid
             split = Partitioner(rng=np.random.RandomState(partition_seed),
                                 min_n_sample_per_share=min_n_sample_per_share,
                                 partition_mode=partition_mode)
-            splitted_datasets = []
+            splitted_clients = []
 
             val_sets, sub_train_sets = [], []
-            for i_dataset, (dname, tr_set) in enumerate(zip(datasets, train_sets)):
-                _train_len_by_user = split(train_len[i_dataset], n_user_per_domain)
+            for i_client, (dname, tr_set) in enumerate(zip(clients, train_sets)):
+                _train_len_by_user = split(train_len[i_client], n_user_per_domain)
                 print(f" {dname} | train split size: {_train_len_by_user}")
 
                 base_idx = 0
@@ -202,7 +209,7 @@ def make_fed_data(train_sets, test_sets, batch_size, domains, shuffle_eval=False
                     val_sets.append(Subset(tr_set, list(range(base_idx, base_idx + vl))))
                     base_idx += vl
 
-                    splitted_datasets.append(f"{dname}-{i_user}")
+                    splitted_clients.append(f"{dname}-{i_user}")
 
             sub_test_sets = []
             for te_set in test_sets:
@@ -216,17 +223,17 @@ def make_fed_data(train_sets, test_sets, batch_size, domains, shuffle_eval=False
         # rename
         train_sets = sub_train_sets
         test_sets = sub_test_sets
-        datasets = splitted_datasets
-    else:
+        clients = splitted_clients
+    else:  # single user
         assert n_class_per_user <= 0, "Cannot split in Non-IID way when only one user for one " \
                                       f"domain. But got n_class_per_user={n_class_per_user}"
         val_len = [int(tl * val_ratio) for tl in train_len]
 
-        val_sets = [Subset(tr_set, list(range(train_len[i_dataset]-val_len[i_dataset],
-                                              train_len[i_dataset])))
-                    for i_dataset, tr_set in enumerate(train_sets)]
-        train_sets = [Subset(tr_set, list(range(train_len[i_dataset]-val_len[i_dataset])))
-                      for i_dataset, tr_set in enumerate(train_sets)]
+        val_sets = [Subset(tr_set, list(range(train_len[i_client]-val_len[i_client],
+                                              train_len[i_client])))
+                    for i_client, tr_set in enumerate(train_sets)]
+        train_sets = [Subset(tr_set, list(range(train_len[i_client]-val_len[i_client])))
+                      for i_client, tr_set in enumerate(train_sets)]
 
     # check the real sizes
     print(f" split users' train size: {[len(ts) for ts in train_sets]}")
@@ -237,19 +244,9 @@ def make_fed_data(train_sets, test_sets, batch_size, domains, shuffle_eval=False
             if len(ts) <= 0:
                 raise RuntimeError(f"user-{i_ts} not has enough val data.")
 
-    if distributed:
-        from torch.utils.data.distributed import DistributedSampler
-
-        train_loaders = [DataLoader(tr_set, batch_size=batch_size, shuffle=False,
-                                    drop_last=partition_mode != 'uni', num_workers=num_workers,
-                                    pin_memory=pin_memory,
-                                    sampler=DistributedSampler(tr_set, shuffle=shuffle,
-                                                               drop_last=partition_mode != 'uni'))
-                         for tr_set in train_sets]
-    else:
-        train_loaders = [DataLoader(tr_set, batch_size=batch_size, shuffle=shuffle,
-                                    num_workers=num_workers, pin_memory=pin_memory,
-                                    drop_last=partition_mode != 'uni') for tr_set in train_sets]
+    train_loaders = [DataLoader(tr_set, batch_size=batch_size, shuffle=shuffle,
+                                num_workers=num_workers, pin_memory=pin_memory,
+                                drop_last=partition_mode != 'uni') for tr_set in train_sets]
     test_loaders = [DataLoader(te_set, batch_size=test_batch_size, shuffle=shuffle_eval,
                                num_workers=num_workers, pin_memory=pin_memory)
                     for te_set in test_sets]
@@ -260,7 +257,7 @@ def make_fed_data(train_sets, test_sets, batch_size, domains, shuffle_eval=False
     else:
         val_loaders = test_loaders
 
-    return train_loaders, val_loaders, test_loaders, datasets
+    return train_loaders, val_loaders, test_loaders, clients
 
 def prepare_domainnet_data(args, domains=['clipart', 'quickdraw'], shuffle_eval=False,
                            n_class_per_user=-1, n_user_per_domain=1,
@@ -270,7 +267,7 @@ def prepare_domainnet_data(args, domains=['clipart', 'quickdraw'], shuffle_eval=
     assert args.data.lower() in ['domainnet', 'domainnetf']
     train_sets, test_sets = get_central_data(args.data.lower(), domains)
 
-    train_loaders, val_loaders, test_loaders, datasets = make_fed_data(
+    train_loaders, val_loaders, test_loaders, clients = make_fed_data(
         train_sets, test_sets, args.batch, domains, shuffle_eval=shuffle_eval,
         partition_seed=partition_seed, n_user_per_domain=n_user_per_domain,
         partition_mode=partition_mode,
@@ -281,7 +278,7 @@ def prepare_domainnet_data(args, domains=['clipart', 'quickdraw'], shuffle_eval=
         num_workers=8 if args.data.lower() == 'domainnetf' else 0,
         pin_memory=False if args.data.lower() == 'domainnetf' else True,
     )
-    return train_loaders, val_loaders, test_loaders, datasets
+    return train_loaders, val_loaders, test_loaders, clients
 
 
 def prepare_digits_data(args, domains=['MNIST', 'SVHN'], shuffle_eval=False, n_class_per_user=-1,
@@ -295,7 +292,7 @@ def prepare_digits_data(args, domains=['MNIST', 'SVHN'], shuffle_eval=False, n_c
     train_sets, test_sets = get_central_data(
         args.data, domains, percent=args.percent, image_norm='0.5' if do_adv_train else 'none',
         disable_image_norm_error=True)
-    train_loaders, val_loaders, test_loaders, datasets = make_fed_data(
+    train_loaders, val_loaders, test_loaders, clients = make_fed_data(
         train_sets, test_sets, args.batch, domains, shuffle_eval=shuffle_eval,
         partition_seed=partition_seed, n_user_per_domain=n_user_per_domain,
         partition_mode=partition_mode,
@@ -304,7 +301,7 @@ def prepare_digits_data(args, domains=['MNIST', 'SVHN'], shuffle_eval=False, n_c
         subset_with_logits=subset_with_logits,
         test_batch_size=args.test_batch if hasattr(args, 'test_batch') else args.batch
     )
-    return train_loaders, val_loaders, test_loaders, datasets
+    return train_loaders, val_loaders, test_loaders, clients
 
 
 def prepare_cifar_data(args, domains=['cifar10'], shuffle_eval=False, n_class_per_user=-1,
@@ -313,7 +310,7 @@ def prepare_cifar_data(args, domains=['cifar10'], shuffle_eval=False, n_class_pe
                        ):
     train_sets, test_sets = get_central_data('cifar10', domains)
 
-    train_loaders, val_loaders, test_loaders, datasets = make_fed_data(
+    train_loaders, val_loaders, test_loaders, clients = make_fed_data(
         train_sets, test_sets, args.batch, domains, shuffle_eval=shuffle_eval,
         partition_seed=partition_seed, n_user_per_domain=n_user_per_domain,
         partition_mode=partition_mode,
@@ -322,7 +319,7 @@ def prepare_cifar_data(args, domains=['cifar10'], shuffle_eval=False, n_class_pe
         n_class_per_user=n_class_per_user,
         test_batch_size=args.test_batch if hasattr(args, 'test_batch') else args.batch
     )
-    return train_loaders, val_loaders, test_loaders, datasets
+    return train_loaders, val_loaders, test_loaders, clients
 
 
 class SubsetWithLogits(Subset):
@@ -351,7 +348,7 @@ class SubsetWithLogits(Subset):
 if __name__ == '__main__':
     data = 'cifar10'
     if data == 'digits':
-        train_loaders, val_loaders, test_loaders, datasets = prepare_digits_data(
+        train_loaders, val_loaders, test_loaders, clients = prepare_digits_data(
             type('MockClass', (object,), {'percent': 1.0, 'batch': 32}), domains=['MNIST'],
             n_user_per_domain=5,
             partition_seed=1,
@@ -363,7 +360,7 @@ if __name__ == '__main__':
             print(target)
             break
     elif data == 'cifar10':
-        train_loaders, val_loaders, test_loaders, datasets = prepare_cifar_data(
+        train_loaders, val_loaders, test_loaders, clients = prepare_cifar_data(
             type('MockClass', (object,), {'batch': 32, 'percent': 0.1}), domains=['cifar10'],
             n_user_per_domain=5,
             partition_seed=1,

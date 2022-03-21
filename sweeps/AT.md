@@ -8,6 +8,9 @@ e.g., `fed_iid/cifar10_test.yaml`, for testing.
 
 Results in Fig 9 (a,b).
 
+Plots:
+* Visualize RA-SA trade-off: [../ipynb/RA SA Trade-off.ipynb](../ipynb/RA%20SA%20Trade-off.ipynb)
+
 ### FedAvg + Re-training for individual $\lambda$
 
 Runs are included in the next section of FedAvg.
@@ -53,7 +56,7 @@ wandb sweep sweeps/fed_at_niid/digits_SplitMix_test.yaml
 
 ## Customizable Robustness + Customizable Model Sizes
 
-Results in Fig 9 (b,c,d). Check [ipynb](../ipynb/Joint customization.ipynb) for figure reproducing.
+Results in Fig 9 (b,c,d). Check [ipynb](../ipynb/Joint%20customization.ipynb) for figure reproducing.
 
 ### FedAvg
 

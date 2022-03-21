@@ -6,7 +6,15 @@ e.g., `fed_iid/digits_test.yaml`, for testing.
 
 # Benchmarks
 
-## Baseline with a single slim_ratio
+Restuls in Sec. 5.1.
+
+Plots:
+* Visualize convergence curves (Fig 1,4,13): [../ipynb/Convergence curve.ipynb](../ipynb/Convergence%20curves.ipynb)
+* Benchmark tables (Table 1): [../ipynb/Convergence%20curve.ipynb](../ipynb/Benchmarks.ipynb)
+* DomainNet per domain acc (Fig. 6): [../ipynb/DomainNet%20per%20domain%20acc.ipynb](../ipynb/DomainNet%20per%20domain%20acc.ipynb)
+* Client-wise statistics of test acc, training and communication efficiency (Fig. 5): [../ipynb/client_stat.ipynb](../ipynb/client_stat.ipynb)
+
+## FedAvg: Baseline with a single width
 
 * Cifar10 100% or 50% train data
 ```shell
@@ -145,15 +153,14 @@ wandb sweep sweeps/fed_niid/domainnet_SplitMix_test.yaml
 # => [02/28] https://wandb.ai/jyhong/SplitMix_release/sweeps/2kxrau5h
 ```
 
-Plots:
-* Visualize convergence curves (Fig 1,4,13): [../ipynb/Convergence curve.ipynb](../ipynb/Convergence%20curves.ipynb)
-* Benchmark tables (Table 1): [../ipynb/Convergence%20curve.ipynb](../ipynb/Benchmarks.ipynb)
-* DomainNet per domain acc (Fig. 6): [../ipynb/DomainNet%20per%20domain%20acc.ipynb](../ipynb/DomainNet%20per%20domain%20acc.ipynb)
-* Client-wise statistics of test acc, training and communication efficiency (Fig. 5): [../ipynb/client_stat.ipynb](../ipynb/client_stat.ipynb)
-
 # Ablation Study
 
-## SplitMix Ablation of rescale_init, rescale_layer, loss_temp
+## SplitMix Ablation of BN stat, rescale init, rescale layer
+
+Results in Sec. A.3. 
+
+Plots:
+* Ablation table (Table 4): [../ipynb/Ablation study.ipynb](../ipynb/Ablation%20study.ipynb)
 
 * Digits
 ```shell
@@ -175,12 +182,12 @@ wandb sweep sweeps/ablation/digits_SplitMix_test.yaml
 #    @GPU8 All-in-one ablation + track bn stat + LBN
 ```
 
-Plots
-* Ablation table (Table 4): [../ipynb/Ablation%20study.ipynb](../ipynb/Ablation%20study.ipynb)
-
 ## Vary budget distributions
 
 Results in Sec. A.5. Vary the users per round (`pr_nuser`).
+
+Plots:
+* Budget distribution and per-width performance comparisons (Fig 11): [../ipynb/Digits vary budget distribution.ipynb](../ipynb/Digits%20vary%20budget%20distribution.ipynb)
 
 **FedAvg**: As FedAvg are individually trained for each width, there is no need to test with varying budgets.
 
@@ -217,12 +224,12 @@ wandb sweep sweeps/vary_budget_dist/digits_SHeteroFL_test.yaml
 #    @GPU10 slim_ratios=ln0.5_0.4
 ```
 
-Plots:
-* Budget distribution and per-width performance comparisons (Fig 11): [../ipynb/Digits%20vary%20budget%20distribution.ipynb](../ipynb/Digits%20vary%20budget%20distribution.ipynb)
-
 ## Effect of Lower Contact Rates (`pr_nuser`)
 
 Results in Sec. A.6. Vary the users per round (`pr_nuser`).
+
+Plots:
+* Budget distribution and per-width performance comparisons (Fig 11): [../ipynb/Digits vary budget distribution.ipynb](../ipynb/Digits%20vary%20pr%20nuser.ipynb)
 
 **SplitMix**:
 * Digits
@@ -251,6 +258,3 @@ wandb sweep sweeps/vary_pr_nuser/digits_SHeteroFL_test.yaml
 # => [03/09] https://wandb.ai/jyhong/SplitMix_release/sweeps/0qjd6qdr
 #    @GPU8
 ```
-
-Plots:
-* Budget distribution and per-width performance comparisons (Fig 11): [../ipynb/Digits%20vary%20budget%20distribution.ipynb](../ipynb/Digits%20vary%20pr%20nuser.ipynb)
