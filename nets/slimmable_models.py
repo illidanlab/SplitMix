@@ -76,6 +76,8 @@ class SlimmableMixin(object):
 
     def switch_slim_mode(self, ratio, slim_bias_idx=0, out_slim_bias_idx=None,
                          mix_forward_num=1):
+        """Set the desired width ratio. When forwarding network, the model will execute on
+        the set ratio. Check layers defined in `slimmable_ops` for details."""
         # print(f"### switch ratio {ratio}, slim_bias_idx {slim_bias_idx}, "
         #       f"out_slim_bias_idx {out_slim_bias_idx}, mix_forward_num {mix_forward_num}")
         if ratio is None:
