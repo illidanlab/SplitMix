@@ -8,7 +8,7 @@ Customization" [Junyuan Hong](https://jyhong.gitlab.io/), [Haotao Wang](https://
 [Zhangyang Wang](https://vita-group.github.io/) and [Jiayu Zhou](https://jiayuzhou.github.io/),
 *ICLR* 2022. 
 
-[paper](https://openreview.net/pdf?id=_QLmakITKg) / [code](https://github.com/illidanlab/SplitMix) / [slides](https://jyhong.gitlab.io/publication/split_mix/slides.pdf)
+[paper](https://openreview.net/pdf?id=_QLmakITKg) / [code](https://github.com/illidanlab/SplitMix) / [slides](https://jyhong.gitlab.io/publication/split_mix/slides.pdf) / [blog](https://jyhong.gitlab.io/publication/split_mix/)
 
 
 **TL;DR** Split-Mix is an efficient and flexible Federated Learning algorithm allowing customizing model
